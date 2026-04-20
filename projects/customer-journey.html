@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Journey Analysis — Rinaldi Romulus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #06080f;
+      --card: #10141e;
+      --border: rgba(255,255,255,0.07);
+      --accent: #4fffb0;
+      --accent2: #3d9eff;
+      --accent3: #ffb84f;
+      --accent4: #ff6b6b;
+      --text: #dde4f0;
+      --muted: #6b7a99;
+      --heading-font: 'Syne', sans-serif;
+      --serif-font: 'Instrument Serif', serif;
+      --body-font: 'DM Sans', sans-serif;
+      --mono-font: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body-font);
+      font-weight: 300;
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 5vw;
+      background: rgba(6,8,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--heading-font);
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--accent); }
+
+    /* HERO */
+    .hero {
+      padding: 10rem 5vw 5rem;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+    }
+    .orb1 { width: 600px; height: 600px; background: rgba(61,158,255,0.06); top: -200px; right: -100px; }
+    .orb2 { width: 400px; height: 400px; background: rgba(79,255,176,0.05); bottom: -100px; left: 0; }
+
+    .hero-inner { position: relative; z-index: 1; max-width: 820px; }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.85rem;
+      border-radius: 100px;
+    }
+    .badge-complete { color: var(--accent2); background: rgba(61,158,255,0.08); border: 1px solid rgba(61,158,255,0.2); }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .badge-type { color: var(--accent); background: rgba(79,255,176,0.08); border: 1px solid rgba(79,255,176,0.2); }
+
+    .hero-title {
+      font-family: var(--heading-font);
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 0.75rem;
+    }
+    .hero-subtitle {
+      font-family: var(--serif-font);
+      font-style: italic;
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+    .hero-desc {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.22s;
+      font-family: var(--body-font);
+    }
+    .btn-primary { background: var(--accent); color: #06080f; }
+    .btn-primary:hover { background: #7fffca; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(79,255,176,0.2); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    .hero-stack { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .stack-tag {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      font-family: var(--mono-font);
+    }
+
+    /* CONTENT */
+    .content { max-width: 900px; margin: 0 auto; padding: 5rem 5vw; }
+
+    .block { margin-bottom: 5rem; }
+
+    .block-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+    .block-title {
+      font-family: var(--heading-font);
+      font-weight: 700;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      line-height: 1.15;
+    }
+    .block-body { color: var(--muted); font-size: 1.02rem; line-height: 1.85; }
+    .block-body p { margin-bottom: 1.1rem; }
+    .block-body p:last-child { margin-bottom: 0; }
+    .block-body strong { color: var(--text); font-weight: 500; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0 0 5rem; }
+
+    /* QUESTION CARD */
+    .question-card {
+      background: var(--card);
+      border: 1px solid rgba(61,158,255,0.15);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .question-card::before {
+      content: '"';
+      position: absolute;
+      top: -0.5rem; left: 1.5rem;
+      font-family: var(--serif-font);
+      font-size: 8rem;
+      color: rgba(61,158,255,0.06);
+      line-height: 1;
+      pointer-events: none;
+    }
+    .question-text {
+      font-family: var(--serif-font);
+      font-style: italic;
+      font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+      color: var(--text);
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* METHODOLOGY STEPS */
+    .method-steps { display: flex; flex-direction: column; gap: 1.25rem; }
+    .method-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+      transition: border-color 0.2s;
+    }
+    .method-step:hover { border-color: rgba(61,158,255,0.25); }
+    .method-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(61,158,255,0.08);
+      border: 1px solid rgba(61,158,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-size: 0.78rem;
+      color: var(--accent2);
+      flex-shrink: 0;
+    }
+    .method-body h4 {
+      font-family: var(--heading-font);
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+    .method-body p { font-size: 0.88rem; color: var(--muted); line-height: 1.65; }
+    .method-body code {
+      font-family: var(--mono-font);
+      font-size: 0.8rem;
+      background: rgba(61,158,255,0.08);
+      color: var(--accent2);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* INSIGHT BOX */
+    .insight-box {
+      background: var(--card);
+      border: 1px solid rgba(61,158,255,0.2);
+      border-radius: 14px;
+      padding: 2rem 2.25rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+    .insight-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+    .insight-text { font-size: 0.97rem; color: var(--muted); line-height: 1.75; }
+    .insight-text strong { color: var(--text); font-weight: 500; }
+
+    /* FUNNEL STATS */
+    .funnel-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .funnel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .funnel-card:hover { border-color: rgba(79,255,176,0.25); transform: translateY(-2px); }
+    .funnel-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .funnel-num {
+      font-family: var(--heading-font);
+      font-weight: 800;
+      font-size: 2rem;
+      color: var(--accent4);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .funnel-label { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+    /* SEGMENT TABLE */
+    .segment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .segment-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .segment-card:hover { border-color: rgba(61,158,255,0.3); transform: translateY(-2px); }
+    .segment-name {
+      font-family: var(--heading-font);
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: var(--accent2);
+    }
+    .segment-stat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .segment-stat:last-child { border-bottom: none; }
+    .segment-stat span:last-child { color: var(--text); font-weight: 500; }
+
+    /* ATTRIBUTION TABLE */
+    .attr-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    .attr-table th {
+      text-align: left;
+      padding: 0.7rem 1rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      font-family: var(--heading-font);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .attr-table td {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .attr-table td:first-child { color: var(--text); font-weight: 500; }
+    .attr-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* RECOMMENDATION CARDS */
+    .recs-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .rec-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+      transition: border-color 0.2s;
+    }
+    .rec-card:hover { border-color: rgba(79,255,176,0.2); }
+    .rec-num {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(79,255,176,0.08);
+      border: 1px solid rgba(79,255,176,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-size: 0.75rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .rec-body h4 {
+      font-family: var(--heading-font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .rec-body p { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
+
+    /* REFERENCES */
+    .references {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 2.25rem;
+    }
+    .references h4 {
+      font-family: var(--heading-font);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 1.25rem;
+    }
+    .ref-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .ref-item {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+    .ref-item::before { content: '—'; position: absolute; left: 0; color: var(--accent2); }
+
+    /* FOOTER */
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 5vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    /* ANIMATIONS */
+    .reveal {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .js-loaded .reveal { opacity: 0; transform: translateY(24px); }
+    .reveal.visible { opacity: 1 !important; transform: translateY(0) !important; }
+
+    @media (max-width: 700px) {
+      .funnel-grid { grid-template-columns: 1fr 1fr; }
+      .segment-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .funnel-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="../index.html" class="nav-logo">RR</a>
+  <a href="../index.html#projects" class="nav-back">← Back to Portfolio</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-inner">
+    <div class="hero-meta">
+      <span class="badge badge-complete"><span class="badge-dot"></span>Completed · Spring 2026</span>
+      <span class="badge badge-type">Funnel Analytics</span>
+      <span class="badge badge-type">Attribution Modeling</span>
+      <span class="badge badge-type">Customer Segmentation</span>
+    </div>
+    <h1 class="hero-title">Customer Journey Analysis<br>& Multi-Touch Attribution</h1>
+    <p class="hero-subtitle">Analytics Practicum — Atlanta, GA Sponsor</p>
+    <p class="hero-desc">
+      Analyzing 681,864 customer sessions to map conversion funnels, profile behavioral segments,
+      and build a reusable Markov chain attribution model — delivered for an Atlanta-based sponsor. Some data and business details have been redacted at the sponsor's request.
+    </p>
+    <div class="hero-actions">
+      <a href="mailto:rinaldiromulus@gmail.com" class="btn btn-primary">✉ Code on Request</a>
+      <a href="mailto:rinaldiromulus@gmail.com" class="btn btn-ghost">✉ Request Full Report</a>
+    </div>
+    <div class="hero-stack">
+      <span class="stack-tag">Python</span>
+      <span class="stack-tag">Pandas</span>
+      <span class="stack-tag">NetworkX</span>
+      <span class="stack-tag">Plotly</span>
+      <span class="stack-tag">Markov Attribution</span>
+      <span class="stack-tag">Looker Studio</span>
+      <span class="stack-tag">SQL</span>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PROBLEM -->
+  <div class="block reveal">
+    <span class="block-eyebrow">The Problem</span>
+    <h2 class="block-title">Where are customers dropping off — and which channels actually drive conversions?</h2>
+    <div class="question-card">
+      <p class="question-text">
+        Retention programs and paid media budgets were being allocated on rules of thumb rather than
+        evidence. This project provides a quantitative view of where customers drop out of the
+        conversion funnel and which marketing channels actually earn their conversions.
+      </p>
+    </div>
+    <div class="block-body">
+      <p>
+        Working with an Atlanta-based sponsor, the team analyzed session-level event data to understand
+        how customers interact with the platform, identify drop-off points in the conversion funnel,
+        segment customers by behavior and lifetime value, and assess retention trends across cohorts.
+      </p>
+      <p>
+        The analysis informs three decisions: <strong>where</strong> to invest in funnel optimization,
+        <strong>which</strong> customer segments to prioritize for retention, and <strong>how</strong>
+        to reallocate channel budgets based on causal contribution rather than last-touch credit.
+      </p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- METHODOLOGY -->
+  <div class="block reveal">
+    <span class="block-eyebrow">Methodology</span>
+    <h2 class="block-title">A four-phase analytical approach</h2>
+    <div class="method-steps">
+      <div class="method-step">
+        <div class="method-num">01</div>
+        <div class="method-body">
+          <h4>ETL & Sessionization</h4>
+          <p>Sessions were classified into five journey stages — Landing, Browse, Product View, Add to Cart, Purchase — using a custom <code>classify_journey</code> function. Transition counts between stages were computed to build transition matrices for the journey network graph.</p>
+        </div>
+      </div>
+      <div class="method-step">
+        <div class="method-num">02</div>
+        <div class="method-body">
+          <h4>Funnel Analysis</h4>
+          <p>Stage-to-stage conversion rates and drop-off percentages were calculated across all 681,864 sessions. Two parallel paths to Product View were identified: through Browse (63.3% of sessions) and directly from Landing (36.7%).</p>
+        </div>
+      </div>
+      <div class="method-step">
+        <div class="method-num">03</div>
+        <div class="method-body">
+          <h4>Customer Segmentation</h4>
+          <p>Customers segmented into three behavioral tiers based on lifetime order count: <strong>One-time</strong> (1 order), <strong>Returning</strong> (2–3 orders), and <strong>Loyal</strong> (4+ orders). LTV, order count, and active months computed per segment.</p>
+        </div>
+      </div>
+      <div class="method-step">
+        <div class="method-num">04</div>
+        <div class="method-body">
+          <h4>Markov Chain Attribution</h4>
+          <p>A Markov chain with <strong>removal-effect credit allocation</strong> was built across eleven states: Start, eight marketing channels, Conversion, and Null. For each channel, its row in the transition matrix was zeroed out and the resulting drop in conversion probability was measured — this is the removal effect. Normalizing across channels yields percentage attribution.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- FUNNEL FINDINGS -->
+  <div class="block reveal">
+    <span class="block-eyebrow">Key Findings — Funnel</span>
+    <h2 class="block-title">57.9% of users abandon at checkout — the single largest revenue leak</h2>
+
+    <div class="funnel-grid">
+      <div class="funnel-card">
+        <div class="funnel-num">36.6%</div>
+        <div class="funnel-label">Drop-off from Product View to Add to Cart</div>
+      </div>
+      <div class="funnel-card">
+        <div class="funnel-num">57.9%</div>
+        <div class="funnel-label">Drop-off from Add to Cart to Purchase — largest leak</div>
+      </div>
+      <div class="funnel-card">
+        <div class="funnel-num">26.7%</div>
+        <div class="funnel-label">End-to-end session-to-purchase conversion rate</div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="insight-icon">💡</span>
+      <p class="insight-text">
+        Closing just a tenth of the Add to Cart → Purchase gap — moving drop-off from 57.9% to ~52% —
+        would produce roughly <strong>25,000 additional converted sessions</strong> on the observed volume.
+        This is the highest-ROI optimization target in the funnel.
+      </p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- SEGMENTATION FINDINGS -->
+  <div class="block reveal">
+    <span class="block-eyebrow">Key Findings — Segmentation</span>
+    <h2 class="block-title">Three segments, very different economics</h2>
+
+    <div class="segment-grid">
+      <div class="segment-card">
+        <div class="segment-name">One-Time Buyers</div>
+        <div class="segment-stat"><span>Users</span><span>50,095 (62.8%)</span></div>
+        <div class="segment-stat"><span>Avg LTV</span><span>$86.78</span></div>
+        <div class="segment-stat"><span>Revenue share</span><span>40.4%</span></div>
+        <div class="segment-stat"><span>Avg orders</span><span>1.0</span></div>
+      </div>
+      <div class="segment-card">
+        <div class="segment-name">Returning Buyers</div>
+        <div class="segment-stat"><span>Users</span><span>24,790 (31.0%)</span></div>
+        <div class="segment-stat"><span>Avg LTV</span><span>$189.63</span></div>
+        <div class="segment-stat"><span>Revenue share</span><span>43.7%</span></div>
+        <div class="segment-stat"><span>Avg orders</span><span>2.2</span></div>
+      </div>
+      <div class="segment-card">
+        <div class="segment-name">Loyal Buyers</div>
+        <div class="segment-stat"><span>Users</span><span>4,982 (6.2%)</span></div>
+        <div class="segment-stat"><span>Avg LTV</span><span>$343.44</span></div>
+        <div class="segment-stat"><span>Revenue share</span><span>15.9%</span></div>
+        <div class="segment-stat"><span>Avg orders</span><span>4.0</span></div>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <span class="insight-icon">📊</span>
+      <p class="insight-text">
+        The <strong>Returning segment generates the largest revenue share (43.7%)</strong> despite being only
+        31% of users. Converting a One-time buyer to Returning delivers a <strong>2.2x LTV lift</strong> —
+        the most direct path to revenue growth. Loyal customers deliver 4x the LTV of One-time buyers
+        but make up only 6.2% of users, leaving clear room to grow this tier.
+      </p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- ATTRIBUTION FINDINGS -->
+  <div class="block reveal">
+    <span class="block-eyebrow">Key Findings — Attribution</span>
+    <h2 class="block-title">Markov attribution surfaces where credit actually belongs</h2>
+
+    <div class="block-body" style="margin-bottom: 1.75rem;">
+      <p>
+        Because the sponsor's dataset lacked user-level traffic source data, the Markov attribution
+        methodology was demonstrated on the <strong>Google Analytics 360 public dataset</strong>
+        (Google Merchandise Store, 2016–2017) as a reference application. This illustrates the type
+        of output the model produces — specific numbers reflect that dataset, not the sponsor's business.
+      </p>
+    </div>
+
+    <table class="attr-table">
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Attribution</th>
+          <th>Sessions</th>
+          <th>Session CVR</th>
+          <th>Attributed Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Referral</td><td>42.7%</td><td>104,699</td><td>5.08%</td><td>$657,845</td></tr>
+        <tr><td>Organic Search</td><td>32.4%</td><td>381,561</td><td>0.90%</td><td>$499,278</td></tr>
+        <tr><td>Direct</td><td>17.0%</td><td>129,254</td><td>1.44%</td><td>$261,596</td></tr>
+        <tr><td>Paid Search</td><td>4.6%</td><td>24,788</td><td>1.85%</td><td>$70,134</td></tr>
+        <tr><td>Display</td><td>1.5%</td><td>6,262</td><td>2.28%</td><td>$23,854</td></tr>
+        <tr><td>Social</td><td>1.3%</td><td>226,117</td><td>0.05%</td><td>$19,370</td></tr>
+      </tbody>
+    </table>
+
+    <div class="insight-box">
+      <span class="insight-icon">🔗</span>
+      <p class="insight-text">
+        <strong>Social is a leakage channel</strong> — 226,117 sessions at 0.05% conversion, 93.4% ending
+        in abandonment, earning just 1.3% attribution despite massive volume. Meanwhile,
+        <strong>Organic Search is structurally critical</strong>: low per-session CVR (0.90%) but 32.4%
+        attribution because it anchors multi-touch paths that eventually convert. A last-touch model
+        would severely undercredit it.
+      </p>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="block reveal">
+    <span class="block-eyebrow">Recommendations</span>
+    <h2 class="block-title">Four actions, ordered by expected impact</h2>
+    <div class="recs-grid">
+      <div class="rec-card">
+        <div class="rec-num">01</div>
+        <div class="rec-body">
+          <h4>Fix checkout drop-off</h4>
+          <p>A/B test shipping-cost display, form length, and payment options. Closing a tenth of the 57.9% gap yields roughly 25,000 more converted sessions on observed volume.</p>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">02</div>
+        <div class="rec-body">
+          <h4>Grow the Returning segment</h4>
+          <p>Already the largest revenue contributor at 43.7%. Lifecycle marketing to convert One-time buyers to Returning is the most direct path to growth — a 2.2x LTV lift per conversion.</p>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">03</div>
+        <div class="rec-body">
+          <h4>Intervene in the first 30 days</h4>
+          <p>Recent cohorts drop to 18% month-1 retention against a 30–33% historical baseline. A targeted email or offer inside the first month addresses the highest-impact churn window.</p>
+        </div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">04</div>
+        <div class="rec-body">
+          <h4>Operationalize Markov attribution as a merchant service</h4>
+          <p>Package the attribution pipeline as a repeatable offering. Inputs are ordered channel sequences and a conversion label; outputs are removal-effect channel ranks and attributed revenue — letting spend decisions rest on modeled contribution rather than last-touch heuristics.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- REFERENCES -->
+  <div class="block reveal">
+    <span class="block-eyebrow">References</span>
+    <h2 class="block-title" style="font-size: 1.2rem; margin-bottom: 1.25rem;">Data Sources</h2>
+    <div class="references">
+      <div class="ref-list">
+        <div class="ref-item">Sponsor-provided session-level schema — sessions, user order facts, and repeat purchase tables. Details redacted at sponsor's request.</div>
+        <div class="ref-item">Google Analytics 360 Sample Dataset. BigQuery public dataset: <em>bigquery-public-data.google_analytics_sample</em>, Google Merchandise Store, August 2016 – August 2017.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <span>© 2025 Rinaldi Romulus</span>
+  <a href="../index.html#projects" style="color: var(--muted); text-decoration: none; transition: color 0.2s;"
+     onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← Back to Projects</a>
+</div>
+
+<script>
+  document.documentElement.classList.add('js-loaded');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+  setTimeout(() => {
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  }, 100);
+</script>
+
+</body>
+</html>
